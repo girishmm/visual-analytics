@@ -1,11 +1,11 @@
 {
-  "name": "dashboard-template-for-students",
+  "name": "visual-analytics",
   "type": "module",
   "version": "1.0.0",
   "engines": {
-    "node": "^18.18.0"
+    "node": ">18.18.0"
   },
-  "description": "TEMPLATE VISVA EXERCISES",
+  "description": "VISVA EXERCISE",
   "main": "index.js",
   "scripts": {
     "build-client": "webpack",
@@ -18,17 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@gitlab.cs.uni-koeln.de:tom.baumgartl/dashboard-template-for-students.git"
+    "url": "git@gitlab.com:girishmm/visual-analytics"
   },
   "keywords": [
     "barebone",
     "server",
     "client",
-    "template",
     "dashboard"
   ],
-  "author": "Tom Baumgartl",
-  "license": "ISC",
+  "author": "girishmm",
+  "license": "MIT",
   "dependencies": {
     "@saehrimnir/druidjs": "^0.7.3",
     "cli-color": "^2.0.1",
