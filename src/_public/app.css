@@ -1,0 +1,80 @@
+html,
+body,
+head,
+#root,
+#app,
+.svg_root {
+  padding: 0px;
+  margin: 0px;
+  height: 100%;
+  width: 100%;
+
+  overflow: hidden;
+}
+
+#root {
+  display: grid;
+  grid-template-columns: 300px auto;
+  grid-template-rows: 100px auto;
+  grid-template-areas: "banner banner" "sidepanel visualizations";
+}
+
+.banner {
+  grid-area: banner;
+  background: rgb(120, 150, 196);
+
+  text-align: center;
+  line-height: 100px;
+  font-size: 40px;
+  font-weight: bold;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.sidepanel {
+  grid-area: sidepanel;
+  background: rgb(202, 202, 202);
+  padding: 20px;
+}
+
+.visualizations {
+  grid-area: visualizations;
+
+  display: grid;
+  grid-template-columns: 50% auto;
+  grid-template-rows: auto;
+  grid-template-areas: "barchart scatterplot";
+}
+
+.barchart {
+  grid-area: barchart;
+}
+
+.scatterplot {
+  grid-area: scatterplot;
+}
+
+.button {
+    /* 300px: width if the sidepanel defined in the grid-template for #root */
+    /* 40px = 2 times 20px padding in .sidepanel */
+    width: calc(300px - 40px);
+    border-radius: 20px;
+    height: 50px;
+    font-size: 1.2em;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.button:hover {
+    background: rgb(180, 180, 180);
+}
+
+input[type=text], select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }

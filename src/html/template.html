@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BAREBONE</title>
+  </head>
+  <body>
+    <noscript> You need to enable JavaScript to run this app. </noscript>
+    <div class="root" id="root">
+      <div class="banner">Dashboard Template VISVA</div>
+      <div class="sidepanel">
+        <label for="max_weight">Filter for weight below ___ kg</label>
+        <input
+          type="text"
+          id="max_weight"
+          value="120"
+          name="max_weight"
+          placeholder="Max. weight..."
+        />
+        <button id="load_data_button" class="button">Load data</button>
+      </div>
+      <div class="visualizations">
+        <div class="barchart">
+          <svg class="svg_root" id="barchart_svg">
+            <g id="g_x_axis_barchart"></g>
+            <g id="g_y_axis_barchart"></g>
+            <g id="g_barchart"></g>
+          </svg>
+        </div>
+        <div class="scatterplot">
+          <svg class="svg_root" id="scatterplot_svg">
+            <g id="g_x_axis_scatterplot"></g>
+            <g id="g_y_axis_scatterplot"></g>
+            <g id="g_scatterplot"></g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
