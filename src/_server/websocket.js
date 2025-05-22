@@ -12,6 +12,7 @@ import { getExampleLDA } from "./druidExample.js";
  */
 
 import { get_average_ratings_by_mechanic } from "./preprocessing.js"
+import { computeLDAProjection } from "./lda.js";
 
 const file_path = "data/"
 const file_name = "boardgames_100.json"
@@ -40,13 +41,13 @@ export function setupConnection(socket) {
   })
 
   /**
-   * # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+   * # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
    *
    * !!!!! Here an below, you can/should edit the code  !!!!!
    * - you can modify the getData listener
    * - you can add other listeners for other functionalities
    *
-   * # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+   * # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
    */
 
 
@@ -76,6 +77,19 @@ export function setupConnection(socket) {
     })
     console.log("Server emitted average ratings by mechanic")
   })
+
+  socket.on("requestLDAProjection", async ({ targetDim }) => {
+    console.log("Client requested LDA reduction")
+
+    const filepath = "data/boardgames_100.json"
+    const fileContent = fs.readFileSync(filepath)
+    const boardgames = JSON.parse(fileContent)
+
+    const projection = computeLDAProjection(boardgames, targetDim);
+    socket.emit("ldaProjectionResult", projection);
+    console.log("Server emitted LDA reduction")
+  });
+
 
   // /**
   //  * My LISTENER ENDS and Template continues

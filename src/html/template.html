@@ -20,6 +20,14 @@
         <!-- /> -->
         <!-- <button id="load_data_button" class="button">Load data</button> -->
         <button id="load_mechanic_button" class="button">Load Mechanic Rating Averages</button>
+        <div>
+          <label for="lda-dim-select">LDA Dimensions:</label>
+          <select id="lda-dim-select">
+            <option value="2" selected>2D</option>
+            <option value="3">3D</option>
+          </select>
+          <button id="run-lda-btn">Run LDA</button>
+        </div>
       </div>
       <div class="visualizations">
         <!-- <div class="barchart"> -->
@@ -41,6 +49,13 @@
             <g id="g_x_axis_mechanic_barchart"></g>
             <g id="g_y_axis_mechanic_barchart"></g>
             <g id="g_mechanic_barchart"></g>
+          </svg>
+        </div>
+        <div class="scatterplot">
+          <svg class="svg_root" id="scatterplot_svg">
+            <g id="g_x_axis_scatterplot"></g>
+            <g id="g_y_axis_scatterplot"></g>
+            <g id="g_scatterplot"></g>
           </svg>
         </div>
       </div>

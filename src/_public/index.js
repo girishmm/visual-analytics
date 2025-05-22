@@ -8,6 +8,7 @@ import * as d3 from "d3"
 // MY CODE STARTS
 
 import { draw_mechanic_barchart } from "./mechanic_barchart.js"
+import { draw_scatterplot_lda } from "./lda_scatterplot.js";
 
 // MY CODE ENDS
 
@@ -133,3 +134,18 @@ socket.on("averageRatingsByMechanic", (payload) => {
 document.getElementById("load_mechanic_button").onclick = () => {
   socket.emit("getAverageRatingsByMechanic")
 }
+
+/**
+ * Callback that get LDA projection
+ */
+socket.on("ldaProjectionResult", (data) => {
+  draw_scatterplot_lda(data);
+});
+
+/**
+ * Button to choose parameters and trigger the LDA request
+ */
+document.getElementById("run-lda-btn").addEventListener("click", () => {
+  const targetDim = parseInt(document.getElementById("lda-dim-select").value, 10);
+  socket.emit("requestLDAProjection", { targetDim });
+});

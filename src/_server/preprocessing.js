@@ -48,6 +48,46 @@ export function get_average_ratings_by_mechanic(games) {
   return result
 }
 
+export function encodeMechanicsLDA(data) {
+  const minReviews = 500;
+  const mechanicsSet = new Set();
+
+  // Collect all unique mechanic names
+  data.forEach(game => {
+    if (game.rating?.num_of_reviews >= minReviews) {
+      game.types?.mechanics?.forEach(m => mechanicsSet.add(m.name));
+    }
+  });
+
+  const mechanicsList = Array.from(mechanicsSet);
+
+  const encoded = [];
+
+  data.forEach(game => {
+    if (game.rating?.num_of_reviews >= minReviews) {
+      const vec = new Array(mechanicsList.length).fill(0);
+      const gameMechanics = game.types?.mechanics?.map(m => m.name) || [];
+      gameMechanics.forEach(m => {
+        const idx = mechanicsList.indexOf(m);
+        if (idx !== -1) vec[idx] = 1;
+      });
+
+      const rating = game.rating.rating;
+      const label = rating >= 8.5 ? "High" : rating >= 8 ? "Medium" : "Low";
+
+      encoded.push({
+        title: game.title,
+        rating,
+        label,
+        vector: vec,
+      });
+    }
+  });
+
+  return { encoded, mechanicsList };
+}
+
+
 /**
  * My CODE ENDS and TEMPLATE starts
  */
