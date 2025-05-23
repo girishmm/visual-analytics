@@ -52,7 +52,7 @@ module.exports = {
       title: "Webpack App",
       filename: "index.html",
       template: "src/html/template.html",
-      favicon: "src/img/visva_small.png",
+      favicon: "src/img/dice_small.png",
     }),
     // new BundleAnalyzerPlugin(),
   ],
