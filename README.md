@@ -51,6 +51,7 @@ in another file
 json
 - change module style to ES modules from CommonJS modules (import and
 export keyword instead of require)
+- scrollable bar chart as too many mechanics squish it
 - interactive barplot (if time)
 
 ![Barplot of rating by mechanic](img/grouping-chart.png)
@@ -79,6 +80,8 @@ way to change parameter of PCA interactively
  - expected: similar mechanics cluster together. kinda true as we see high up alone.
  - problems: couldn't find inverse of matrix, determinant is zero.
    probably due to high correlation. pca helps here. so pca, then lda works.
+ - showing mechanics on hover for comparision
+ - better: clicking multiple shows only common mechanics
 
 ![Scatter plot using LDA](img/scatter-plot.png)
 
