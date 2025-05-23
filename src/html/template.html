@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Visual Analytics</title>
+    <title>Boardgame Dashboard</title>
   </head>
   <body>
-    <noscript> You need to enable JavaScript to run this app. </noscript>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div class="root" id="root">
-      <div class="banner">Dashboard</div>
+      <div class="banner">Boardgame Dashboard</div>
       <div class="sidepanel">
-        <button id="load_mechanic_button" class="button">Load Mechanic Rating Averages</button>
+        <button id="load_mechanic_button" class="button">Average by Mechanics</button>
         <div id="lda-dim-select">
           <label for="lda-d">LDA Dimensions:</label>
           <input type="number" id="lda-d" name="lda-d" value="2" min="1" max="10" />
@@ -18,20 +18,21 @@
         </div>
       </div>
       <div class="visualizations">
-        <div class="mechanic_barchart">
+        <div class="mechanic_barchart visualization-panel">
           <svg class="svg_root" id="mechanic_barchart_svg">
             <g id="g_x_axis_mechanic_barchart"></g>
             <g id="g_y_axis_mechanic_barchart"></g>
             <g id="g_mechanic_barchart"></g>
           </svg>
         </div>
-        <div class="scatterplot">
+        <div class="scatterplot visualization-panel">
           <svg class="svg_root" id="scatterplot_svg">
             <g id="g_x_axis_scatterplot"></g>
             <g id="g_y_axis_scatterplot"></g>
             <g id="g_scatterplot"></g>
           </svg>
         </div>
+        <div id="scatterplot_legend_container" class="legend-container"></div>
       </div>
     </div>
   </body>

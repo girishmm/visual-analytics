@@ -24,6 +24,8 @@ export function computeLDAProjection(data, targetDim = 2) {
   return transformed.map((point, i) => ({
     title: encoded[i].title,
     label: encoded[i].label,
+    rating: encoded[i].rating,
+    mechanics: encoded[i].mechanics,
     x: point[0],
     y: point[1],
   }));

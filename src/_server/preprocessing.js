@@ -38,16 +38,14 @@ export function encodeMechanicsLDA(data) {
   const minReviews = 500;
   const mechanicsSet = new Set();
 
-  // Collect all unique mechanic names
   data.forEach(game => {
     if (game.rating?.num_of_reviews >= minReviews) {
       game.types?.mechanics?.forEach(m => mechanicsSet.add(m.name));
     }
   });
 
-  const mechanicsList = Array.from(mechanicsSet);
-
   const encoded = [];
+  const mechanicsList = Array.from(mechanicsSet);
 
   data.forEach(game => {
     if (game.rating?.num_of_reviews >= minReviews) {
@@ -63,8 +61,9 @@ export function encodeMechanicsLDA(data) {
 
       encoded.push({
         title: game.title,
-        rating,
         label,
+        rating: rating,
+        mechanics: gameMechanics,
         vector: vec,
       });
     }
