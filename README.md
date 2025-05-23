@@ -107,4 +107,4 @@ downside same as another game
  - filter by year to find latest trends
  - filter by reviews to remove unreliable stuff. or have a reliability measure
 
-**Here is the presentation**: [presentation](presentation.pdf))
+**Here is the presentation**: [presentation](presentation-project-1.pdf))
