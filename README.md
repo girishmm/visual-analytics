@@ -99,4 +99,9 @@ downside same as another game
 
 ![Parameters changing for LDA](img/parameter-changing.png)
 
+**Ideas that came later**:
+ - filter by category to find what mechanics go together
+ - filter by year to find latest trends
+ - filter by reviews to remove unreliable stuff. or have a reliability measure
+
 **And done!! On to the presentation.**
