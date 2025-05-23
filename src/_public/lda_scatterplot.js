@@ -14,11 +14,9 @@ export function draw_scatterplot_lda(data) {
   const g_x_axis = d3.select("#g_x_axis_scatterplot");
   const g_y_axis = d3.select("#g_y_axis_scatterplot");
 
-  // Clear previous elements from the scatterplot group and axes to prevent duplicates on redraws
   g_scatterplot.selectAll("*").remove();
   g_x_axis.selectAll("*").remove();
   g_y_axis.selectAll("*").remove();
-  // No need to clear #g_legend here as it's no longer within the SVG and we'll clear its container
 
   const xExtent = d3.extent(data, d => d.x);
   const yExtent = d3.extent(data, d => d.y);
@@ -36,24 +34,24 @@ export function draw_scatterplot_lda(data) {
 
   const colorScale = d3.scaleOrdinal()
     .domain(["High", "Medium", "Low"])
-    .range(["#28a745", "#ffc107", "#dc3545"]); // Modernized colors: Green, Yellow, Red
+    .range(["#28a745", "#ffc107", "#dc3545"]);
 
   let tooltip = d3.select("body").select("#scatterplot_tooltip");
   if (tooltip.empty()) {
     tooltip = d3.select("body").append("div")
       .attr("id", "scatterplot_tooltip")
       .style("position", "absolute")
-      .style("background-color", "rgba(40, 40, 40, 0.95)") // From CSS
-      .style("color", "white") // From CSS
-      .style("border", "none") // From CSS
-      .style("padding", "10px 12px") // From CSS
-      .style("border-radius", "6px") // From CSS
+      .style("background-color", "rgba(40, 40, 40, 0.95)")
+      .style("color", "white")
+      .style("border", "none")
+      .style("padding", "10px 12px")
+      .style("border-radius", "6px")
       .style("pointer-events", "none")
-      .style("font-size", "13px") // From CSS
-      .style("line-height", "1.5") // From CSS
-      .style("box-shadow", "0 4px 15px rgba(0,0,0,0.3)") // From CSS
-      .style("max-width", "200px") // From CSS
-      .style("text-align", "left") // From CSS
+      .style("font-size", "13px")
+      .style("line-height", "1.5")
+      .style("box-shadow", "0 4px 15px rgba(0,0,0,0.3)")
+      .style("max-width", "200px")
+      .style("text-align", "left")
       .style("opacity", 0);
   }
 
@@ -66,16 +64,16 @@ export function draw_scatterplot_lda(data) {
         .attr("r", 4)
         .attr("fill", d => colorScale(d.label))
         .attr("opacity", 0.8)
-        .attr("stroke", "rgba(255,255,255,0.7)") // Lighter white stroke for sleekness
-        .attr("stroke-width", 1) // Slightly thicker initial stroke
+        .attr("stroke", "rgba(255,255,255,0.7)")
+        .attr("stroke-width", 1)
         .on("mouseover", function(event, d) {
           d3.select(this)
             .transition()
             .duration(100)
             .attr("r", 8)
             .attr("opacity", 1)
-            .attr("stroke", "#4a90e2") // Highlight with primary blue
-            .attr("stroke-width", 2.5); // Thicker highlight stroke
+            .attr("stroke", "#4a90e2")
+            .attr("stroke-width", 2.5);
 
             tooltip.html(`<strong>${d.title}</strong><br/>` +
                          `Rating: ${d.rating}<br/>` +
@@ -92,7 +90,7 @@ export function draw_scatterplot_lda(data) {
             .duration(100)
             .attr("r", 4)
             .attr("opacity", 0.8)
-            .attr("stroke", "rgba(255,255,255,0.7)") // Revert to light white
+            .attr("stroke", "rgba(255,255,255,0.7)")
             .attr("stroke-width", 1);
 
           tooltip.transition()
@@ -114,48 +112,38 @@ export function draw_scatterplot_lda(data) {
   g_x_axis
     .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(xAxis)
-    .selectAll("text") // Style axis labels
+    .selectAll("text")
       .style("font-size", "12px")
       .style("fill", "#555");
-  g_x_axis.selectAll("path, line") // Style axis lines
+  g_x_axis.selectAll("path, line")
       .style("stroke", "#ccc");
 
   g_y_axis
     .attr("transform", `translate(${margin.left}, 0)`)
     .call(yAxis)
-    .selectAll("text") // Style axis labels
+    .selectAll("text")
       .style("font-size", "12px")
       .style("fill", "#555");
-  g_y_axis.selectAll("path, line") // Style axis lines
+  g_y_axis.selectAll("path, line")
       .style("stroke", "#ccc");
 
-
-  // --- Legend (now in HTML) ---
   const legendContainer = d3.select("#scatterplot_legend_container");
 
-  // Clear previous legend content from the container
   legendContainer.selectAll("*").remove();
-
-  // Bind data to legend items (using the domain of the color scale)
   const legendItems = legendContainer.selectAll(".legend-item-html")
-    .data(colorScale.domain()) // "High", "Medium", "Low"
+    .data(colorScale.domain())
     .join(
       enter => {
-        // Create a div for each legend item
         const item = enter.append("div")
-          .attr("class", "legend-item-html"); // Class for styling in CSS
+          .attr("class", "legend-item-html");
 
-        // Append a colored box (div)
         item.append("div")
-          .attr("class", "legend-color-box") // Class for styling in CSS
-          .style("background-color", d => colorScale(d)); // Set background color based on scale
+          .attr("class", "legend-color-box")
+          .style("background-color", d => colorScale(d));
 
-        // Append the text label (span)
         item.append("span")
-          .text(d => d); // Set text content
+          .text(d => d);
         return item;
       }
-      // No update or exit selection needed for simple HTML divs here,
-      // as we clear and re-create on each draw.
     );
 }

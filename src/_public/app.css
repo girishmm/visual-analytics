@@ -1,4 +1,3 @@
-/* Base Styles & Global Resets */
 html,
 body,
 #root,
@@ -7,84 +6,75 @@ body,
   margin: 0;
   height: 100%;
   width: 100%;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
-  color: #333; /* Default text color */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
 }
 
-/* Ensure svgs themselves don't scroll independently unless explicitly desired */
 .svg_root {
-  display: block; /* Remove extra space below SVG */
+  display: block;
   width: 100%;
-  /* CRITICAL: Removed height: 100%; from this general rule.
-     The height of the bar chart SVG will be set by JS.
-     The scatterplot SVG will have its height set explicitly below. */
-  box-sizing: border-box; /* Include padding/border in element's total width/height */
+  box-sizing: border-box;
 }
 
-/* Root Grid Layout */
 #root {
   display: grid;
-  grid-template-columns: 280px auto; /* Slightly narrower sidepanel for sleekness */
-  grid-template-rows: 80px 1fr; /* Banner fixed, rest available space to main content */
+  grid-template-columns: 280px auto;
+  grid-template-rows: 80px 1fr;
   grid-template-areas:
     "banner banner"
     "sidepanel visualizations";
-  height: 100vh; /* Ensure it takes full viewport height */
-  background-color: #f8f8f8; /* Light background for the whole app */
-  overflow: hidden; /* Keep root from scrolling as sidepanel/visualizations will handle it */
+  height: 100vh;
+  background-color: #f8f8f8;
+  overflow: hidden;
 }
 
-/* Banner Styling */
 .banner {
   grid-area: banner;
-  background: linear-gradient(to right, #4a90e2, #6a5acd); /* Gradient for a modern feel */
-  color: white; /* White text on dark gradient */
+  background: linear-gradient(to right, #4a90e2, #6a5acd);
+  color: white;
   text-align: center;
-  line-height: 80px; /* Vertically center text */
-  font-size: 36px; /* Slightly smaller, more refined */
-  font-weight: 600; /* Semibold */
-  letter-spacing: 1.5px; /* Add some letter spacing */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  line-height: 80px;
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Sidepanel Styling */
 .sidepanel {
   grid-area: sidepanel;
-  background: #ffffff; /* Clean white background */
+  background: #ffffff;
   padding: 20px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05); /* Subtle shadow on the right */
-  display: flex; /* Use flexbox for vertical alignment */
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  display: flex;
   flex-direction: column;
-  gap: 20px; /* Space between elements */
-  overflow-y: auto; /* Allow sidepanel to scroll if content overflows */
+  gap: 20px;
+  overflow-y: auto;
 }
 
-/* Button Styling */
 .button {
-  width: calc(100% - 20px); /* Adjust width to account for sidepanel padding */
-  padding: 12px 15px; /* More padding */
-  border: none; /* No border */
-  border-radius: 8px; /* Slightly more rounded corners */
-  background-color: #4a90e2; /* Primary blue color */
+  width: calc(100% - 20px);
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4a90e2;
   color: white;
   font-size: 1.1em;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.1s ease; /* Smooth transitions */
+  transition: background-color 0.3s ease, transform 0.1s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .button:hover {
-  background-color: #357bd8; /* Darker blue on hover */
-  transform: translateY(-1px); /* Slight lift effect */
+  background-color: #357bd8;
+  transform: translateY(-1px);
 }
 
 .button:active {
-  background-color: #2a6bbd; /* Even darker on click */
+  background-color: #2a6bbd;
   transform: translateY(0);
 }
 
-/* LDA Dimensions Input Styling */
 #lda-dim-select {
   display: flex;
   flex-direction: column;
@@ -101,7 +91,7 @@ body,
 }
 
 #lda-dim-select input[type=number] {
-  width: calc(100% - 20px); /* Adjust for padding */
+  width: calc(100% - 20px);
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -110,105 +100,98 @@ body,
   text-align: center;
 }
 
-/* Visualizations Grid Layout */
 .visualizations {
   grid-area: visualizations;
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Two equal columns */
-  grid-template-rows: 1fr 80px; /* Top row takes available space, bottom fixed for legend */
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 80px;
   grid-template-areas:
     "barchart scatterplot"
-    ". scatterplot-legend"; /* Place legend below scatterplot, span barchart column with empty space */
-  gap: 20px; /* Space between visualization panels */
-  padding: 20px; /* Overall padding for the visualization area */
-  background-color: #f0f2f5; /* Light grey background for visualization area */
-  overflow: hidden; /* Keep this container from scrolling globally. Individual panels will scroll. */
+    ". scatterplot-legend";
+  gap: 20px;
+  padding: 20px;
+  background-color: #f0f2f5;
+  overflow: hidden;
 }
 
 .visualization-panel {
   background-color: #ffffff;
-  border-radius: 12px; /* Rounded corners for visualization panels */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* More pronounced shadow */
-  padding: 15px; /* Internal padding for panels */
-  display: flex; /* Use flex to make child (SVG) fill height */
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  display: flex;
   flex-direction: column;
-  min-height: 0; /* Important for flex/grid items that might have scrollable content */
+  min-height: 0;
+  overflow-y: auto;
 }
 
-/* Specific styling for the barchart container to allow its content to scroll */
 .mechanic_barchart {
   grid-area: barchart;
-  /* CRITICAL CHANGE: Use max-height (fixed pixels) for the container.
-     This value is chosen to fit about 15-20 bars comfortably, enabling scrolling. */
-  max-height: 550px; /* Adjust this value as needed to show desired number of bars initially */
-  overflow-y: auto; /* *** CRITICAL: enables scrolling for this div when content overflows *** */
-  box-sizing: border-box; /* Include padding in height calculation */
+  max-height: 550px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
-/* Ensure scatterplot SVG fills its parent panel */
 .scatterplot .svg_root {
-  height: 100%; /* Scatterplot SVG fills its parent visualization-panel */
+  height: 100%;
 }
 
-/* --- Scatterplot Legend Styling --- */
 #scatterplot_legend_container {
-  grid-area: scatterplot-legend; /* Assign to the new grid area */
-  display: flex; /* Use flexbox to arrange legend items */
-  justify-content: center; /* Center the legend items horizontally */
-  align-items: center; /* Vertically align items */
-  gap: 30px; /* Space between each legend entry */
-  background-color: #ffffff; /* White background for the legend container */
+  grid-area: scatterplot-legend;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08); /* Consistent shadow */
-  padding: 10px 20px; /* Padding inside the legend container */
-  margin-top: 10px; /* Slight margin from the plot above it */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  padding: 10px 20px;
+  margin-top: 10px;
 }
 
 .legend-item-html {
-  display: flex; /* Flexbox for the box and text within each item */
-  align-items: center; /* Vertically align color box and text */
+  display: flex;
+  align-items: center;
   font-size: 14px;
   color: #555;
   font-weight: 500;
 }
 
 .legend-color-box {
-  width: 18px; /* Slightly larger color box */
+  width: 18px;
   height: 18px;
-  margin-right: 8px; /* Space between box and text */
-  border-radius: 4px; /* Soften the corners of the color box */
-  border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border */
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05); /* Inner shadow for depth */
+  margin-right: 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Tooltip Styling (Enhanced for Sleekness) */
 #scatterplot_tooltip {
-  background-color: rgba(40, 40, 40, 0.95); /* Darker, slightly transparent background */
-  color: white; /* White text */
-  border: none; /* No border */
-  padding: 10px 12px; /* More padding */
-  border-radius: 6px; /* Smoother corners */
-  font-size: 13px; /* Slightly larger font */
+  background-color: rgba(40, 40, 40, 0.95);
+  color: white;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
   line-height: 1.5;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Stronger, softer shadow */
-  max-width: 200px; /* Prevent it from getting too wide */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  max-width: 200px;
   text-align: left;
-  z-index: 1000; /* Ensure tooltip is on top of other elements */
+  z-index: 1000;
 }
 
 #scatterplot_tooltip strong {
-  font-weight: 700; /* Bold title */
-  display: block; /* Ensure title is on its own line */
-  margin-bottom: 5px; /* Space below title */
+  font-weight: 700;
+  display: block;
+  margin-bottom: 5px;
 }
 
-/* Input number styling */
 input[type=number] {
-  width: 100%; /* Make it fill its parent */
+  width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  box-sizing: border-box; /* Include padding in element's total width/height */
+  box-sizing: border-box;
   font-size: 1em;
   text-align: center;
 }

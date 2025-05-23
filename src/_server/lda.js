@@ -6,12 +6,12 @@ export function computeLDAProjection(data, targetDim = 2) {
   const rawMatrix = encoded.map(d => d.vector);
   const labels = encoded.map(d => d.label);
 
-  console.log(`📊 Matrix shape: ${rawMatrix.length} x ${rawMatrix[0].length}`);
-  console.log(`🏷️ Label distribution:`, countLabels(labels));
-  console.log("🔢 Sample vectors:", rawMatrix.slice(0, 3).map(v => v.slice(0, 10)));
+  console.log(`Matrix shape: ${rawMatrix.length} x ${rawMatrix[0].length}`);
+  console.log(`Label distribution:`, countLabels(labels));
+  console.log("Sample vectors:", rawMatrix.slice(0, 3).map(v => v.slice(0, 10)));
 
   const matrix = druid.Matrix.from(rawMatrix);
-  console.log("🧪 Is matrix a Matrix?", matrix instanceof druid.Matrix);
+  console.log("Is matrix a Matrix?", matrix instanceof druid.Matrix);
 
   const pca = new druid.PCA(matrix, { d: 20 });
   const reduced = pca.transform();
