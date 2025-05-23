@@ -3,8 +3,8 @@
 - [x] Step 1: Setup (changes made: bump up node version, reorganize template a bit, filename is not boardgame_40.json)
 - [x] Step 2: Download the dataset and explore manually
 - [x] Step 3. Group analysis for developer
-- [ ] Step 4: LDA
-- [ ] Step 5: Pipeline
+- [x] Step 4: LDA
+- [x] Step 5: Pipeline
 - [ ] Step 6: Presentation
 - [ ] Step 7: Beutify
 
@@ -83,3 +83,20 @@ way to change parameter of PCA interactively
 ![Scatter plot using LDA](img/scatter-plot.png)
 
 ### Task 3:
+
+Updated LDA parameters changing with more range.
+
+**Other ideas explored**:
+
+ - just realized developers will also be interested in what mechanics
+fit well together or lead to good ratings together. how to do it? but
+downside same as another game
+ - legends and interactive filter and mouseover
+
+#### Design decision:
+
+  - pretty straight-forward. so nothing major
+
+![Parameters changing for LDA](img/parameter-changing.png)
+
+**And done!! On to the presentation.**

@@ -38,8 +38,9 @@ export function draw_scatterplot_lda(data) {
     .append("circle")
     .attr("cx", d => xScale(d.x))
     .attr("cy", d => yScale(d.y))
-    .attr("r", 5)
+    .attr("r", 4)
     .attr("fill", d => colorScale(d.label))
+    .attr("opacity", 0.8)
     .append("title")
     .text(d => `${d.title}\nRating: ${d.label}`);
 

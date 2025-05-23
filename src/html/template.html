@@ -20,13 +20,10 @@
         <!-- /> -->
         <!-- <button id="load_data_button" class="button">Load data</button> -->
         <button id="load_mechanic_button" class="button">Load Mechanic Rating Averages</button>
-        <div>
-          <label for="lda-dim-select">LDA Dimensions:</label>
-          <select id="lda-dim-select">
-            <option value="2" selected>2D</option>
-            <option value="3">3D</option>
-          </select>
-          <button id="run-lda-btn">Run LDA</button>
+        <div id="lda-dim-select">
+          <label for="lda-d">LDA Dimensions:</label>
+          <input type="number" id="lda-d" name="lda-d" value="2" min="1" max="10" />
+          <button id="run-lda-btn">Run Projection</button>
         </div>
       </div>
       <div class="visualizations">

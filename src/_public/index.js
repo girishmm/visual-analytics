@@ -146,6 +146,6 @@ socket.on("ldaProjectionResult", (data) => {
  * Button to choose parameters and trigger the LDA request
  */
 document.getElementById("run-lda-btn").addEventListener("click", () => {
-  const targetDim = parseInt(document.getElementById("lda-dim-select").value, 10);
+  const targetDim = parseInt(document.getElementById("lda-d").value, 10);
   socket.emit("requestLDAProjection", { targetDim });
 });
