@@ -5,7 +5,7 @@
 - [x] Step 3. Group analysis for developer
 - [x] Step 4: LDA
 - [x] Step 5: Pipeline
-- [ ] Step 6: Presentation
+- [x] Step 6: Presentation
 - [ ] Step 7: Beutify
 
 ### Set-up
@@ -95,7 +95,7 @@ downside same as another game
 
 #### Design decision:
 
-  - pretty straight-forward. so nothing major
+  - chose to plot only the x,y of the LDA dimension for 2D plots
 
 ![Parameters changing for LDA](img/parameter-changing.png)
 
@@ -104,4 +104,4 @@ downside same as another game
  - filter by year to find latest trends
  - filter by reviews to remove unreliable stuff. or have a reliability measure
 
-**And done!! On to the presentation.**
+**Here is the presentation**: [presentation](project-1.pdf)
