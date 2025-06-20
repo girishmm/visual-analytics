@@ -4,6 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Boardgame Dashboard</title>
+    <style>
+      /* Scrollable inner wrapper for the mechanic bar chart */
+      .chart-wrapper {
+        height: 600px;           /* fixed viewport height for scrolling */
+        overflow-y: auto;        /* vertical scrollbar when content overflows */
+        overflow-x: hidden;      /* no horizontal scrollbar */
+        position: relative;
+      }
+      /* Allow SVG to use its CSS width and scroll within wrapper */
+      .chart-wrapper svg {
+        display: block;
+        height: auto;
+      }
+      /* Tooltip styling */
+      .tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 8px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        pointer-events: none;
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -19,11 +44,14 @@
       </div>
       <div class="visualizations">
         <div class="mechanic_barchart visualization-panel">
-          <svg class="svg_root" id="mechanic_barchart_svg">
-            <g id="g_x_axis_mechanic_barchart"></g>
-            <g id="g_y_axis_mechanic_barchart"></g>
-            <g id="g_mechanic_barchart"></g>
-          </svg>
+          <!-- Inner scrollable wrapper -->
+          <div class="chart-wrapper">
+            <svg class="svg_root" id="mechanic_barchart_svg">
+              <g id="g_x_axis_mechanic_barchart"></g>
+              <g id="g_y_axis_mechanic_barchart"></g>
+              <g id="g_mechanic_barchart"></g>
+            </svg>
+          </div>
         </div>
         <div class="scatterplot visualization-panel">
           <svg class="svg_root" id="scatterplot_svg">
@@ -35,5 +63,8 @@
         <div id="scatterplot_legend_container" class="legend-container"></div>
       </div>
     </div>
+
+    <!-- Load your D3 module -->
+    <script type="module" src="mechanic_barchart.js"></script>
   </body>
 </html>
