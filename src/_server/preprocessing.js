@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { PCA } from 'ml-pca'; // Correctly imported PCA class
-import * as d3 from 'd3'; // Used for internal normalization (d3.extent, d3.scaleLinear)
+import { PCA } from 'ml-pca';
+import * as d3 from 'd3';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,8 +19,8 @@ export const loadGamesData = () => {
         console.log(`Successfully loaded ${allGamesData.length} games from ${dataPath}`);
 
         extractUniqueMechanicsAndBuildMatrix();
-        projectMechanicsTo2D(); // PCA for 2D projection
-        calculatePageRank(); // PageRank for recommendations
+        projectMechanicsTo2D();
+        calculatePageRank();
 
         console.log('Finished initial server-side data preprocessing (PCA, PageRank).');
 
@@ -67,25 +67,28 @@ const projectMechanicsTo2D = () => {
             center: true,
         });
 
-        // *** FIX: Use pca.predict() to get the transformed data ***
-        const principalComponents = pca.predict(gameMechanicMatrix, { nComponents: 2 });
+        // FIX: Convert the Matrix object returned by predict() to a 2D array
+        const principalComponents = pca.predict(gameMechanicMatrix, { nComponents: 2 }).to2DArray();
 
         allGamesData.forEach((game, index) => {
             game.lda_projection = principalComponents[index] || [0, 0];
         });
 
-        // Normalize the projection values to a standard range (-1 to 1)
         const xExtent = d3.extent(allGamesData, d => d.lda_projection[0]);
         const yExtent = d3.extent(allGamesData, d => d.lda_projection[1]);
 
-        if (xExtent[0] !== undefined && xExtent[1] !== undefined && yExtent[0] !== undefined && yExtent[1] !== undefined) {
+        if (xExtent[0] !== undefined && xExtent[1] !== undefined && yExtent[0] !== undefined && yExtent[1] !== undefined && (xExtent[1] !== xExtent[0] || yExtent[1] !== yExtent[0])) {
             const scaleX = d3.scaleLinear().domain(xExtent).range([-1, 1]);
             const scaleY = d3.scaleLinear().domain(yExtent).range([-1, 1]);
             allGamesData.forEach(game => {
                 game.lda_projection[0] = scaleX(game.lda_projection[0]);
                 game.lda_projection[1] = scaleY(game.lda_projection[1]);
             });
+        } else {
+            console.warn("PCA output has no variance or invalid extent, skipping normalization and defaulting to [0,0].");
+            allGamesData.forEach(game => game.lda_projection = [0, 0]);
         }
+
 
     } catch (e) {
         console.error("Error during PCA calculation. Ensure 'ml-pca' is installed and data is valid. Defaulting projections to [0,0].", e);
