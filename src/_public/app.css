@@ -1,82 +1,148 @@
-/* Custom styles for panel transitions */
+/* Panel Collapse/Expand Transitions */
 .panel-container {
-    transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 .panel-content {
-    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
 }
 .panel-container.collapsed .panel-content {
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-top: 0; /* Ensure no residual margin */
-    margin-bottom: 0; /* Ensure no residual margin */
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .panel-container.collapsed .panel-toggle svg {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 .panel-container:not(.collapsed) .panel-content {
-    /* Max-height can be adjusted if content dynamically changes height significantly */
-    max-height: 500px; /* A generous value to ensure content is visible */
-    opacity: 1;
+  max-height: 500px;
+  opacity: 1;
 }
-/* Specific styles for collapsed state to be super compact */
+/* Super Compact Collapsed Panel Styles */
 .panel-container.collapsed {
-    width: auto !important; /* Allow panel to shrink to content width */
-    max-width: 8rem; /* Even smaller width when collapsed */
-    padding: 0.75rem; /* Reduced padding when collapsed */
-    border-radius: 9999px; /* Make it more circular or pill-shaped when collapsed */
+    width: auto !important;
+    max-width: 8rem;
+    padding: 0.75rem;
+    border-radius: 9999px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 .panel-container.collapsed .panel-header {
-    margin-bottom: 0 !important; /* Remove margin below header when collapsed */
+    margin-bottom: 0 !important;
 }
 .panel-container.collapsed h3 {
-    display: none; /* Hide title when collapsed */
+    display: none;
 }
 
-/* Custom slider track and thumb styling for better aesthetics */
+/* Custom Slider Track and Thumb Styling */
 input[type="range"]::-webkit-slider-runnable-track {
-    background: #d1d5db; /* gray-300 */
-    border-radius: 9999px; /* rounded-full */
-    height: 0.5rem; /* h-2 */
+    background: #d1d5db;
+    border-radius: 9999px;
+    height: 0.5rem;
 }
 input[type="range"]::-moz-range-track {
-    background: #d1d5db; /* gray-300 */
-    border-radius: 9999px; /* rounded-full */
-    height: 0.5rem; /* h-2 */
+    background: #d1d5db;
+    border-radius: 9999px;
+    height: 0.5rem;
 }
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1rem; /* Adjust thumb size */
-    height: 1rem; /* Adjust thumb size */
-    background: #2563eb; /* blue-600 */
-    border-radius: 9999px; /* rounded-full */
+    width: 1rem;
+    height: 1rem;
+    background: #2563eb;
+    border-radius: 9999px;
     cursor: grab;
-    margin-top: -0.25rem; /* Center thumb vertically */
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); /* Focus ring effect */
+    margin-top: -0.25rem;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
 input[type="range"]::-moz-range-thumb {
-    width: 1rem; /* Adjust thumb size */
-    height: 1rem; /* Adjust thumb size */
-    background: #2563eb; /* blue-600 */
-    border-radius: 9999px; /* rounded-full */
+    width: 1rem;
+    height: 1rem;
+    background: #2563eb;
+    border-radius: 9999px;
     cursor: grab;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); /* Focus ring effect */
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
 
-/* New: Class for selected game list items */
+/* Game List Item States */
 .selected-game-item {
-  background-color: #dbeafe; /* Tailwind's bg-blue-100 */
-  font-weight: 600; /* Tailwind's font-semibold */
-  color: #1e40af; /* Tailwind's text-blue-800 */
+  background-color: #dbeafe;
+  font-weight: 600;
+  color: #1e40af;
 }
 .selected-game-item:hover {
-  background-color: #bfdbfe; /* Tailwind's hover:bg-blue-200 */
+  background-color: #bfdbfe;
+}
+
+.highlighted-list-item {
+    background-color: #fef3c7;
+}
+
+.recommended-list-item {
+    background-color: #fae8ff;
+    border-left: 4px solid #a855f7;
+}
+
+
+/* Scatterplot Specific Styles */
+.x-axis path, .y-axis path {
+    stroke: #d1d5db;
+}
+.x-axis line, .y-axis line {
+    stroke: #e5e7eb;
+}
+.x-axis text, .y-axis text {
+    fill: #6b7280;
+    font-size: 0.75rem;
+}
+
+/* Scatterplot Point States */
+.point-group circle {
+    transition: all 0.15s ease-in-out;
+}
+
+.point-group circle.hovered-point {
+    stroke: #f59e0b !important;
+    stroke-width: 2px !important;
+    r: 7px !important;
+}
+
+.point-group circle.recommended-point {
+    stroke-dasharray: 3 2;
+}
+
+.point-group circle.top-pagerank {
+    stroke: #ef4444 !important;
+    stroke-width: 2px !important;
+}
+
+/* Tooltip Styles */
+.tooltip {
+    position: absolute;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background-color: white;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.bar-group rect.highlighted-bar {
+    fill: #f59e0b;
+}
+
+.bar-group rect {
+    transition: all 0.2s ease-in-out;
+}
+
+.bar-group text {
+    user-select: none;
 }
