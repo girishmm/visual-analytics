@@ -1,70 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Boardgame Dashboard</title>
-    <style>
-      /* Scrollable inner wrapper for the mechanic bar chart */
-      .chart-wrapper {
-        height: 600px;           /* fixed viewport height for scrolling */
-        overflow-y: auto;        /* vertical scrollbar when content overflows */
-        overflow-x: hidden;      /* no horizontal scrollbar */
-        position: relative;
-      }
-      /* Allow SVG to use its CSS width and scroll within wrapper */
-      .chart-wrapper svg {
-        display: block;
-        height: auto;
-      }
-      /* Tooltip styling */
-      .tooltip {
-        position: absolute;
-        background: rgba(0, 0, 0, 0.7);
-        color: #fff;
-        padding: 8px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        pointer-events: none;
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div class="root" id="root">
-      <div class="banner">Boardgame Dashboard</div>
-      <div class="sidepanel">
-        <button id="load_mechanic_button" class="button">Average by Mechanics</button>
-        <div id="lda-dim-select">
-          <label for="lda-d">LDA Dimensions:</label>
-          <input type="number" id="lda-d" name="lda-d" value="2" min="1" max="10" />
-          <button id="run-lda-btn">Run Projection</button>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boardgame Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-100 font-sans text-gray-900 flex flex-col relative overflow-hidden">
+
+  <!-- Scatterplot Area - Full screen background -->
+  <div id="scatterplot" class="absolute inset-0 z-0 flex items-center justify-center bg-gray-50">
+    <div class="text-gray-400 text-xl md:text-2xl font-medium">
+      (Scatterplot will appear here)
+    </div>
+  </div>
+
+  <!-- Control Panel - Top Right -->
+  <div id="control-panel" class="panel-container absolute top-4 right-4 z-10 bg-white rounded-xl shadow-lg p-3 w-11/12 max-w-xs md:max-w-sm lg:max-w-md overflow-hidden">
+    <div class="flex justify-between items-center mb-2 panel-header">
+      <h3 class="text-lg font-semibold text-gray-800">Controls</h3>
+      <button class="panel-toggle text-gray-500 hover:text-gray-700 focus:outline-none transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
+        <svg class="h-5 w-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    </div>
+    <div class="panel-content space-y-2 text-sm">
+      <!-- Games Slider -->
+      <div>
+        <label for="top-x-slider" class="block font-medium text-gray-700 mb-0.5">Games</label>
+        <div class="flex items-center gap-2">
+          <input type="range" id="top-x-slider" min="10" max="100" value="40" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <span id="top-x-value" class="font-medium text-gray-900 w-10 text-right">40</span>
         </div>
       </div>
-      <div class="visualizations">
-        <div class="mechanic_barchart visualization-panel">
-          <!-- Inner scrollable wrapper -->
-          <div class="chart-wrapper">
-            <svg class="svg_root" id="mechanic_barchart_svg">
-              <g id="g_x_axis_mechanic_barchart"></g>
-              <g id="g_y_axis_mechanic_barchart"></g>
-              <g id="g_mechanic_barchart"></g>
-            </svg>
-          </div>
+      <!-- Rating Slider -->
+      <div>
+        <label for="rating-slider" class="block font-medium text-gray-700 mb-0.5">Rating</label>
+        <div class="flex items-center gap-2">
+          <input type="range" id="rating-slider" min="0" max="10" step="0.1" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <span id="rating-value" class="font-medium text-gray-900 w-10 text-right">0+</span>
         </div>
-        <div class="scatterplot visualization-panel">
-          <svg class="svg_root" id="scatterplot_svg">
-            <g id="g_x_axis_scatterplot"></g>
-            <g id="g_y_axis_scatterplot"></g>
-            <g id="g_scatterplot"></g>
-          </svg>
+      </div>
+      <!-- Players Dual Slider -->
+      <div>
+        <label class="block font-medium text-gray-700 mb-0.5">Players</label>
+        <div class="flex items-center gap-2">
+          <input type="range" id="player-min-slider" min="1" max="10" value="1" class="w-1/2 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <input type="range" id="player-max-slider" min="1" max="10" value="10" class="w-1/2 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <span id="player-range-value" class="font-medium text-gray-900 w-16 text-right">1 - 10</span>
         </div>
-        <div id="scatterplot_legend_container" class="legend-container"></div>
+      </div>
+      <!-- Play time Dual Slider -->
+      <div>
+        <label class="block font-medium text-gray-700 mb-0.5">Play time (min)</label>
+        <div class="flex items-center gap-2">
+          <input type="range" id="time-min-slider" min="0" max="600" value="0" step="10" class="w-1/2 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <input type="range" id="time-max-slider" min="0" max="600" value="600" step="10" class="w-1/2 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <span id="time-range-value" class="font-medium text-gray-900 w-20 text-right">0 - 600 min</span>
+        </div>
+      </div>
+      <!-- Components Slider -->
+      <div>
+        <label for="lda-slider" class="block font-medium text-gray-700 mb-0.5">Components</label>
+        <div class="flex items-center gap-2">
+          <input type="range" id="lda-slider" min="2" max="10" value="4" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <span id="lda-value" class="font-medium text-gray-900 w-10 text-right">4</span>
+        </div>
+      </div>
+      <!-- Clusters Slider -->
+      <div>
+        <label for="k-slider" class="block font-medium text-gray-700 mb-0.5">Clusters</label>
+        <div class="flex items-center gap-2">
+          <input type="range" id="k-slider" min="2" max="10" value="4" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <span id="k-value" class="font-medium text-gray-900 w-10 text-right">4</span>
+        </div>
+      </div>
+      <!-- Show Recommendations Checkbox -->
+      <div class="flex items-center pt-2">
+        <input type="checkbox" id="recommendation-toggle" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+        <label for="recommendation-toggle" class="ml-2 block text-sm font-medium text-gray-700">Show Recommendations</label>
       </div>
     </div>
+  </div>
 
-    <!-- Load your D3 module -->
-    <script type="module" src="mechanic_barchart.js"></script>
-  </body>
+  <!-- Game List Panel - Bottom Right -->
+  <div id="game-list" class="panel-container absolute bottom-4 right-4 z-10 bg-white rounded-xl shadow-lg p-3 w-11/12 max-w-xs md:max-w-sm lg:max-w-md overflow-hidden">
+    <div class="flex justify-between items-center mb-2 panel-header">
+      <h3 class="text-lg font-semibold text-gray-800">Displayed Games</h3>
+      <button class="panel-toggle text-gray-500 hover:text-gray-700 focus:outline-none transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
+        <svg class="h-5 w-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    </div>
+    <div class="panel-content">
+      <ul id="game-list-items" class="space-y-1 text-gray-700 max-h-48 overflow-y-auto pr-2 text-sm">
+        <!-- Games will be dynamically added here by JavaScript -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Barchart Panel - Top Left -->
+  <div id="barchart" class="panel-container absolute top-4 left-4 z-10 bg-white rounded-xl shadow-lg p-3 w-11/12 max-w-xs md:max-w-sm lg:max-w-md overflow-hidden">
+    <div class="flex justify-between items-center mb-2 panel-header">
+      <h3 class="text-lg font-semibold text-gray-800">Mechanics Overview</h3>
+      <button class="panel-toggle text-gray-500 hover:text-gray-700 focus:outline-none transition-colors duration-200 p-1 rounded-full hover:bg-gray-100">
+        <svg class="h-5 w-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    </div>
+    <div class="panel-content">
+      <svg id="mechanic-barchart" width="300" height="200" class="bg-gray-50 rounded-md border border-gray-200 w-full h-auto">
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#d1d5db" font-size="0.9rem">(Barchart will appear here)</text>
+      </svg>
+    </div>
+  </div>
+</body>
 </html>

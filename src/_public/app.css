@@ -1,197 +1,82 @@
-html,
-body,
-#root,
-#app {
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  width: 100%;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
+/* Custom styles for panel transitions */
+.panel-container {
+    transition: all 0.3s ease-in-out;
+}
+.panel-content {
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+}
+.panel-container.collapsed .panel-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0; /* Ensure no residual margin */
+    margin-bottom: 0; /* Ensure no residual margin */
+}
+.panel-container.collapsed .panel-toggle svg {
+    transform: rotate(180deg);
+}
+.panel-container:not(.collapsed) .panel-content {
+    /* Max-height can be adjusted if content dynamically changes height significantly */
+    max-height: 500px; /* A generous value to ensure content is visible */
+    opacity: 1;
+}
+/* Specific styles for collapsed state to be super compact */
+.panel-container.collapsed {
+    width: auto !important; /* Allow panel to shrink to content width */
+    max-width: 8rem; /* Even smaller width when collapsed */
+    padding: 0.75rem; /* Reduced padding when collapsed */
+    border-radius: 9999px; /* Make it more circular or pill-shaped when collapsed */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.panel-container.collapsed .panel-header {
+    margin-bottom: 0 !important; /* Remove margin below header when collapsed */
+}
+.panel-container.collapsed h3 {
+    display: none; /* Hide title when collapsed */
 }
 
-.svg_root {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
+/* Custom slider track and thumb styling for better aesthetics */
+input[type="range"]::-webkit-slider-runnable-track {
+    background: #d1d5db; /* gray-300 */
+    border-radius: 9999px; /* rounded-full */
+    height: 0.5rem; /* h-2 */
+}
+input[type="range"]::-moz-range-track {
+    background: #d1d5db; /* gray-300 */
+    border-radius: 9999px; /* rounded-full */
+    height: 0.5rem; /* h-2 */
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem; /* Adjust thumb size */
+    height: 1rem; /* Adjust thumb size */
+    background: #2563eb; /* blue-600 */
+    border-radius: 9999px; /* rounded-full */
+    cursor: grab;
+    margin-top: -0.25rem; /* Center thumb vertically */
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); /* Focus ring effect */
+}
+input[type="range"]::-moz-range-thumb {
+    width: 1rem; /* Adjust thumb size */
+    height: 1rem; /* Adjust thumb size */
+    background: #2563eb; /* blue-600 */
+    border-radius: 9999px; /* rounded-full */
+    cursor: grab;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); /* Focus ring effect */
 }
 
-#root {
-  display: grid;
-  grid-template-columns: 280px auto;
-  grid-template-rows: 80px 1fr;
-  grid-template-areas:
-    "banner banner"
-    "sidepanel visualizations";
-  height: 100vh;
-  background-color: #f8f8f8;
-  overflow: hidden;
+/* New: Class for selected game list items */
+.selected-game-item {
+  background-color: #dbeafe; /* Tailwind's bg-blue-100 */
+  font-weight: 600; /* Tailwind's font-semibold */
+  color: #1e40af; /* Tailwind's text-blue-800 */
 }
-
-.banner {
-  grid-area: banner;
-  background: linear-gradient(to right, #4a90e2, #6a5acd);
-  color: white;
-  text-align: center;
-  line-height: 80px;
-  font-size: 36px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.sidepanel {
-  grid-area: sidepanel;
-  background: #ffffff;
-  padding: 20px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-}
-
-.button {
-  width: calc(100% - 20px);
-  padding: 12px 15px;
-  border: none;
-  border-radius: 8px;
-  background-color: #4a90e2;
-  color: white;
-  font-size: 1.1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.1s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.button:hover {
-  background-color: #357bd8;
-  transform: translateY(-1px);
-}
-
-.button:active {
-  background-color: #2a6bbd;
-  transform: translateY(0);
-}
-
-#lda-dim-select {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
-
-#lda-dim-select label {
-  font-weight: 500;
-  color: #555;
-}
-
-#lda-dim-select input[type=number] {
-  width: calc(100% - 20px);
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-  font-size: 1em;
-  text-align: center;
-}
-
-.visualizations {
-  grid-area: visualizations;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 80px;
-  grid-template-areas:
-    "barchart scatterplot"
-    ". scatterplot-legend";
-  gap: 20px;
-  padding: 20px;
-  background-color: #f0f2f5;
-  overflow: hidden;
-}
-
-.visualization-panel {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.mechanic_barchart {
-  grid-area: barchart;
-  max-height: 550px;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
-
-.scatterplot .svg_root {
-  height: 100%;
-}
-
-#scatterplot_legend_container {
-  grid-area: scatterplot-legend;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 30px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-  padding: 10px 20px;
-  margin-top: 10px;
-}
-
-.legend-item-html {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  color: #555;
-  font-weight: 500;
-}
-
-.legend-color-box {
-  width: 18px;
-  height: 18px;
-  margin-right: 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-#scatterplot_tooltip {
-  background-color: rgba(40, 40, 40, 0.95);
-  color: white;
-  border: none;
-  padding: 10px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  line-height: 1.5;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  max-width: 200px;
-  text-align: left;
-  z-index: 1000;
-}
-
-#scatterplot_tooltip strong {
-  font-weight: 700;
-  display: block;
-  margin-bottom: 5px;
-}
-
-input[type=number] {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-  font-size: 1em;
-  text-align: center;
+.selected-game-item:hover {
+  background-color: #bfdbfe; /* Tailwind's hover:bg-blue-200 */
 }

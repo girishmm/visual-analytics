@@ -1,73 +1,38 @@
-/**
- * Helper function to preprocess the data
- */
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Helper to get __dirname in ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+let allGamesData = [];
 
 /**
- * Computes average user rating per mechanic.
- * Input: array of board game objects with 'mechanics' and 'average_user_rating'
- * Output: array of { mechanic: string, avg_rating: number }
+ * Loads the board games data from a JSON file.
+ * This function should be called once when the server starts.
  */
-export function get_average_ratings_by_mechanic(games) {
-  const mechanicMap = {}
-
-  games.forEach(game => {
-    if (!game.types || !Array.isArray(game.types.mechanics)) return
-
-    const mechanics = game.types.mechanics.map(m => m.name)
-    const avgRating = game.rating && game.rating.rating ? game.rating.rating : 0
-
-    mechanics.forEach(mechanic => {
-      if (!mechanicMap[mechanic]) {
-        mechanicMap[mechanic] = { total: 0, count: 0 }
-      }
-      mechanicMap[mechanic].total += avgRating
-      mechanicMap[mechanic].count += 1
-    })
-  })
-
-  const result = Object.entries(mechanicMap).map(([mechanic, stats]) => ({
-    mechanic,
-    avg_rating: stats.count > 0 ? stats.total / stats.count : 0,
-  }))
-
-  console.log("Computed average ratings by mechanic:", result)
-  return result
-}
-
-export function encodeMechanicsLDA(data) {
-  const minReviews = 500;
-  const mechanicsSet = new Set();
-
-  data.forEach(game => {
-    if (game.rating?.num_of_reviews >= minReviews) {
-      game.types?.mechanics?.forEach(m => mechanicsSet.add(m.name));
+export const loadGamesData = () => {
+    try {
+        // Resolve the path to the boardgames100.json file
+        // Assumes data/boardgames100.json is at the project root relative to src/_server
+        const dataPath = path.resolve(__dirname, '../../data/boardgames_100.json');
+        const data = fs.readFileSync(dataPath, 'utf8');
+        allGamesData = JSON.parse(data);
+        console.log(`Successfully loaded ${allGamesData.length} games from ${dataPath}`);
+    } catch (error) {
+        console.error("Error loading board games data:", error);
+        allGamesData = []; // Ensure data is empty if loading fails
     }
-  });
+};
 
-  const encoded = [];
-  const mechanicsList = Array.from(mechanicsSet);
+/**
+ * Returns the currently loaded all games data.
+ * @returns {Array} An array of game objects.
+ */
+export const getAllGames = () => {
+    return allGamesData;
+};
 
-  data.forEach(game => {
-    if (game.rating?.num_of_reviews >= minReviews) {
-      const vec = new Array(mechanicsList.length).fill(0);
-      const gameMechanics = game.types?.mechanics?.map(m => m.name) || [];
-      gameMechanics.forEach(m => {
-        const idx = mechanicsList.indexOf(m);
-        if (idx !== -1) vec[idx] = 1;
-      });
-
-      const rating = game.rating.rating;
-      const label = rating >= 8.5 ? "High" : rating >= 8 ? "Medium" : "Low";
-
-      encoded.push({
-        title: game.title,
-        label,
-        rating: rating,
-        mechanics: gameMechanics,
-        vector: vec,
-      });
-    }
-  });
-
-  return { encoded, mechanicsList };
-}
+// Initial data load when this module is imported (e.g., when server starts)
+loadGamesData();
