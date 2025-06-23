@@ -36,6 +36,7 @@
     "d3": "^7.8.5",
     "express": "^4.17.3",
     "ip": "^1.1.5",
+    "ml-pca": "^4.1.1",
     "pagerank.js": "^1.0.2",
     "socket.io": "^4.4.1",
     "socket.io-client": "^4.4.1"
