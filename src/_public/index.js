@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const MAX_SELECTED_GAMES = 5;
   let currentHoveredGameId = null;
 
-  // UI Element References
   const gameListItemsContainer = document.getElementById('game-list-items');
   const scatterplotContainer = d3.select("#scatterplot");
   const scatterplotSvg = d3.select("#scatterplot-svg");
@@ -41,8 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const timeMinSlider = document.getElementById('time-min-slider');
   const timeMaxSlider = document.getElementById('time-max-slider');
   const timeRangeValue = document.getElementById('time-range-value');
-  const ldaSlider = document.getElementById('lda-slider');
-  const ldaValue = document.getElementById('lda-value');
   const kSlider = document.getElementById('k-slider');
   const kValue = document.getElementById('k-value');
   const recommendationToggle = document.getElementById('recommendation-toggle');
@@ -51,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const zoomInBtn = d3.select("#zoom-in");
   const zoomOutBtn = d3.select("#zoom-out");
 
-  // Barchart D3 Setup
   const mechanicBarchartSvg = d3.select("#mechanic-barchart");
   let barchartMargin = { top: 10, right: 20, bottom: 10, left: 5 };
   let barchartWidth, barchartHeight;
@@ -75,8 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateBarchartDimensions();
   window.addEventListener('resize', updateBarchartDimensions);
 
-
-  // Scatterplot D3 Setup Variables
   let margin = { top: 20, right: 20, bottom: 50, left: 50 };
   let svgWidth, svgHeight;
   let innerWidth, innerHeight;
@@ -124,8 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
   zoomInBtn.on("click", () => scatterplotSvg.transition().call(zoom.scaleBy, 1.2));
   zoomOutBtn.on("click", () => scatterplotSvg.transition().call(zoom.scaleBy, 0.8));
 
-
-  // Socket.IO Event Listeners
   socket.on('initial_game_data', (data) => {
     console.log('Received initial game data from server:', data.length, 'games');
     allGames = data;
@@ -133,17 +125,18 @@ document.addEventListener('DOMContentLoaded', () => {
     applyFiltersAndDisplayGames();
   });
 
-  socket.on('kmeans_results', (clusterAssignments) => {
+  socket.on('kmeans_results', (results) => {
       console.log('Received K-Means results from server.');
-      const assignmentMap = new Map(clusterAssignments.map(item => [item.id, item.cluster_id]));
-      filteredGames.forEach(game => {
-          game.cluster_id = assignmentMap.get(game.id);
-      });
-      drawScatterplot(filteredGames);
+      if (results && results.clusters) {
+          const assignmentMap = new Map(results.clusters.map(item => [item.id, item.cluster]));
+          filteredGames.forEach(game => {
+              game.cluster_id = assignmentMap.get(game.id);
+          });
+          drawScatterplot(filteredGames);
+      } else {
+          console.warn("K-Means results received without expected 'clusters' property:", results);
+      }
   });
-
-
-  // Helper Functions
 
   const initializeFilterRanges = (gamesData) => {
     if (!gamesData || gamesData.length === 0) return;
@@ -160,6 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const minOverallRating = validRatings.length > 0 ? Math.min(...validRatings) : 0;
     const maxOverallRating = validRatings.length > 0 ? Math.max(...validRatings) : 10;
 
+    if (topXSlider) {
+      topXSlider.min = 1;
+      topXSlider.max = gamesData.length;
+      topXSlider.value = gamesData.length;
+      topXValue.textContent = gamesData.length;
+    }
 
     if (playerMinSlider && playerMaxSlider) {
       playerMinSlider.min = minOverallPlayers;
@@ -247,6 +246,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const topXLimit = parseInt(topXSlider.value);
     filteredGames = currentFilteredGames.slice(0, topXLimit);
 
+    const sortedByPageRank = [...filteredGames].sort((a, b) => b.pagerank_score - a.pagerank_score);
+    const top10PercentCount = Math.ceil(sortedByPageRank.length * 0.10);
+    const top10PercentPageRankIds = new Set(sortedByPageRank.slice(0, top10PercentCount).map(game => game.id));
+
+    filteredGames.forEach(game => {
+      game.is_top_10_pagerank_filtered = top10PercentPageRankIds.has(game.id);
+    });
+
     const kValue = parseInt(kSlider.value);
     if (filteredGames.length > 0 && kValue > 1) {
         const gameIdsToCluster = filteredGames.map(game => game.id);
@@ -263,12 +270,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const populateGameList = (gamesToDisplay) => {
     gameListItemsContainer.innerHTML = '';
 
-    if (!gamesToDisplay || gamesToDisplay.length === 0) {
+    const sortedGamesForList = [...gamesToDisplay].sort((a, b) => {
+        const aSelected = selectedGameIds.has(a.id);
+        const bSelected = selectedGameIds.has(b.id);
+
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+        return (a.rank || Infinity) - (b.rank || Infinity);
+    });
+
+    if (!sortedGamesForList || sortedGamesForList.length === 0) {
       gameListItemsContainer.innerHTML = '<li class="text-gray-500 p-1.5">No games found matching criteria.</li>';
       return;
     }
 
-    gamesToDisplay.forEach((game) => {
+    sortedGamesForList.forEach((game) => {
       const listItem = document.createElement('li');
       listItem.className = 'p-1.5 rounded-md hover:bg-gray-50 cursor-pointer flex justify-between items-center';
       listItem.dataset.gameId = game.id;
@@ -314,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Scatterplot Drawing
   const clusterColorScale = d3.scaleOrdinal(d3.schemeCategory10);
   const pagerankColorScale = d3.scaleLinear()
                                .domain([0, d3.max(allGames, d => d.pagerank_score) || 0.001])
@@ -322,6 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const drawScatterplot = (gamesToDisplay) => {
       scatterplotGroup.selectAll("text").filter(function() { return d3.select(this).text().includes("(No games found"); }).remove();
+      scatterplotGroup.selectAll(".point-group").remove();
 
       const validProjections = gamesToDisplay.filter(d => d.lda_projection && d.lda_projection.length === 2 && !isNaN(d.lda_projection[0]) && !isNaN(d.lda_projection[1]));
 
@@ -369,9 +385,8 @@ document.addEventListener('DOMContentLoaded', () => {
           );
 
       scatterplotGroup.selectAll(".point-group circle")
-          .attr("class", d => d.is_top_10_pagerank ? 'top-pagerank' : '');
+          .attr("class", d => d.is_top_10_pagerank_filtered ? 'top-pagerank' : '');
 
-      // Scatterplot Point Interactivity
       points.on('click', (event, d) => {
           toggleGameSelection(d.id);
       });
@@ -401,15 +416,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const updateScatterplotSelectionStyles = () => {
       scatterplotGroup.selectAll(".point-group circle")
-          .attr("stroke-width", d => selectedGameIds.has(d.id) ? 2 : (d.is_top_10_pagerank ? 2 : 0.5))
-          .attr("stroke", d => selectedGameIds.has(d.id) ? '#2563eb' : (d.is_top_10_pagerank ? '#ef4444' : 'gray'))
+          .attr("stroke-width", d => selectedGameIds.has(d.id) ? 2 : (d.is_top_10_pagerank_filtered ? 2 : 0.5))
+          .attr("stroke", d => selectedGameIds.has(d.id) ? '#2563eb' : (d.is_top_10_pagerank_filtered ? '#ef4444' : 'gray'))
           .attr("r", d => selectedGameIds.has(d.id) ? 6 : 5);
   };
 
   const highlightGame = (gameId, type) => {
       const point = scatterplotGroup.selectAll(`.point-group[data-game-id="${gameId}"] circle`);
       if (!point.empty()) {
-          point.classed('hovered-point', type === 'hover');
+          point.classed('hovered-point', true);
+
           if (!selectedGameIds.has(gameId) && !point.classed('recommended-point') && !point.classed('top-pagerank')) {
               point.attr("r", 7)
                    .attr("stroke-width", 2)
@@ -420,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const listItem = document.querySelector(`#game-list-items li[data-game-id="${gameId}"]`);
       if (listItem) {
           listItem.classList.add('highlighted-list-item');
-          if (type === 'hover') listItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          listItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
   };
 
@@ -428,8 +444,8 @@ document.addEventListener('DOMContentLoaded', () => {
       scatterplotGroup.selectAll(".point-group circle")
           .classed('hovered-point', false)
           .attr("r", d => selectedGameIds.has(d.id) ? 6 : 5)
-          .attr("stroke-width", d => selectedGameIds.has(d.id) ? 2 : (d.is_top_10_pagerank ? 2 : 0.5))
-          .attr("stroke", d => selectedGameIds.has(d.id) ? '#2563eb' : (d.is_top_10_pagerank ? '#ef4444' : 'gray'));
+          .attr("stroke-width", d => selectedGameIds.has(d.id) ? 2 : (d.is_top_10_pagerank_filtered ? 2 : 0.5))
+          .attr("stroke", d => selectedGameIds.has(d.id) ? '#2563eb' : (d.is_top_10_pagerank_filtered ? '#ef4444' : 'gray'));
 
       document.querySelectorAll('#game-list-items li.highlighted-list-item').forEach(item => {
           if (!selectedGameIds.has(parseInt(item.dataset.gameId))) {
@@ -464,8 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
       scatterplotGroup.selectAll(".recommended-point")
           .classed('recommended-point', false)
           .attr("stroke-dasharray", "none")
-          .attr("stroke", d => selectedGameIds.has(d.id) ? '#2563eb' : (d.is_top_10_pagerank ? '#ef4444' : 'gray'))
-          .attr("stroke-width", d => selectedGameIds.has(d.id) ? 2 : (d.is_top_10_pagerank ? 2 : 0.5));
+          .attr("stroke", d => selectedGameIds.has(d.id) ? '#2563eb' : (d.is_top_10_pagerank_filtered ? '#ef4444' : 'gray'))
+          .attr("stroke-width", d => selectedGameIds.has(d.id) ? 2 : (d.is_top_10_pagerank_filtered ? 2 : 0.5));
 
       document.querySelectorAll('.recommended-list-item').forEach(item => {
           if (!selectedGameIds.has(parseInt(item.dataset.gameId))) {
@@ -482,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>Time: ${game.minplaytime}-${game.maxplaytime} min</div>
           <div>Cluster: ${game.cluster_id !== undefined && game.cluster_id !== -1 ? game.cluster_id : 'N/A'}</div>
           <div>PageRank: ${game.pagerank_score !== undefined ? game.pagerank_score.toFixed(4) : 'N/A'}</div>
-          ${game.is_top_10_pagerank ? '<div class="text-red-500 font-bold mt-1">Top 10 PageRank!</div>' : ''}
+          ${game.is_top_10_pagerank_filtered ? '<div class="text-red-500 font-bold mt-1">Key Boardgame!</div>' : ''}
       `;
       tooltip.html(tooltipHTML)
       .style("left", (event.pageX + 10) + "px")
@@ -524,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentHoveredGameId) {
           highlightGame(currentHoveredGameId, 'hover');
       }
-      // Re-evaluate barchart highlights based on new selection
+
       if (selectedGameIds.size > 0) {
         const allSelectedMechanics = new Set();
         selectedGameIds.forEach(id => {
@@ -538,8 +554,6 @@ document.addEventListener('DOMContentLoaded', () => {
         unhighlightMechanicsInBarchart();
       }
   };
-
-  // Barchart Functions
 
   const getMechanicCounts = (games) => {
     const mechanicCounts = {};
@@ -602,20 +616,39 @@ document.addEventListener('DOMContentLoaded', () => {
     bars.append("rect")
       .attr("x", 0)
       .attr("height", barchartYScale.bandwidth())
-      // Changed to a lighter, more subtle blue
-      .attr("fill", "#60a5fa") // Tailwind blue-400 (previously blue-500)
+      .attr("fill", "#60a5fa")
       .transition().duration(500)
       .attr("width", d => barchartXScale(d.count));
 
     bars.selectAll("text").remove();
     bars.append("text")
-      .attr("x", 5) // Small padding from the left of the bar
+      .attr("x", 5)
       .attr("y", barchartYScale.bandwidth() / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "start")
-      .attr("fill", "#f9fafb") // text-gray-50 for contrast on dark bars
+      .attr("fill", "#f9fafb")
       .attr("font-size", "0.7rem")
       .text(d => `${d.name} (${d.count})`);
+
+    bars.on('mouseenter', (event, d) => {
+        const mechanicName = d.name;
+        const gamesWithThisMechanic = filteredGames.filter(game =>
+            game.types && game.types.mechanics && game.types.mechanics.some(m => m.name === mechanicName)
+        );
+
+        gamesWithThisMechanic.forEach(game => highlightGame(game.id, 'hover'));
+        mechanicBarchartSvg.selectAll(`.bar-group[data-mechanic-name="${mechanicName}"] rect`).classed('highlighted-bar', true);
+    });
+
+    bars.on('mouseleave', (event, d) => {
+        const mechanicName = d.name;
+        const gamesWithThisMechanic = filteredGames.filter(game =>
+            game.types && game.types.mechanics && game.types.mechanics.some(m => m.name === mechanicName)
+        );
+
+        gamesWithThisMechanic.forEach(game => unhighlightGame('hover'));
+        mechanicBarchartSvg.selectAll(`.bar-group[data-mechanic-name="${mechanicName}"] rect`).classed('highlighted-bar', false);
+    });
   };
 
   const highlightMechanicsInBarchart = (mechanicsArray) => {
@@ -634,8 +667,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .classed('highlighted-bar', false);
   };
 
-
-  // Initial Setup Calls
   document.querySelectorAll('.panel-toggle').forEach(button => {
     button.addEventListener('click', () => {
       const panel = button.closest('.panel-container');
@@ -647,7 +678,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupSingleSlider(topXSlider, topXValue, '');
   setupSingleSlider(ratingSlider, ratingValue, '+');
-  setupSingleSlider(ldaSlider, ldaValue, '');
   setupSingleSlider(kSlider, kValue, '');
   setupDualRangeSlider(playerMinSlider, playerMaxSlider, playerRangeValue, '');
   setupDualRangeSlider(timeMinSlider, timeMaxSlider, timeRangeValue, '');

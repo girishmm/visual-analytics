@@ -3,24 +3,25 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { PCA } from 'ml-pca';
 import * as d3 from 'd3';
+import pagerank from 'pagerank.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let allGamesData = [];
-let uniqueMechanics = new Set();
+let uniqueMechanics;
 let gameMechanicMatrix = [];
 
-export const loadGamesData = () => {
+export const loadGamesData = async () => {
     try {
-        const dataPath = path.resolve(__dirname, '../../data/boardgames_100.json');
+        const dataPath = path.resolve(__dirname, '../../data/boardgames.json');
         const data = fs.readFileSync(dataPath, 'utf8');
         allGamesData = JSON.parse(data);
         console.log(`Successfully loaded ${allGamesData.length} games from ${dataPath}`);
 
         extractUniqueMechanicsAndBuildMatrix();
         projectMechanicsTo2D();
-        calculatePageRank();
+        await calculatePageRank();
 
         console.log('Finished initial server-side data preprocessing (PCA, PageRank).');
 
@@ -31,6 +32,7 @@ export const loadGamesData = () => {
 };
 
 const extractUniqueMechanicsAndBuildMatrix = () => {
+    uniqueMechanics = new Set();
     allGamesData.forEach(game => {
         if (game.types && game.types.mechanics) {
             game.types.mechanics.forEach(mechanic => {
@@ -67,7 +69,6 @@ const projectMechanicsTo2D = () => {
             center: true,
         });
 
-        // FIX: Convert the Matrix object returned by predict() to a 2D array
         const principalComponents = pca.predict(gameMechanicMatrix, { nComponents: 2 }).to2DArray();
 
         allGamesData.forEach((game, index) => {
@@ -96,161 +97,178 @@ const projectMechanicsTo2D = () => {
     }
 };
 
-export const performKMeans = (gamesSubset, k) => {
-    if (!gamesSubset || gamesSubset.length === 0 || k < 2) {
-        return gamesSubset.map(game => ({ id: game.id, cluster_id: -1 }));
+const calculatePageRank = async () => {
+    if (allGamesData.length === 0) {
+        console.warn("No game data available for PageRank calculation.");
+        return;
     }
 
-    const dataPoints = gamesSubset.map(game => ({
-        id: game.id,
-        point: game.lda_projection
-    })).filter(dp => dp.point && dp.point.length === 2 && !isNaN(dp.point[0]) && !isNaN(dp.point[1]));
+    pagerank.reset();
 
-    if (dataPoints.length === 0) {
-        return gamesSubset.map(game => ({ id: game.id, cluster_id: -1 }));
-    }
+    const allNodeIdsInGraph = new Set();
 
-    const actualK = Math.min(k, dataPoints.length);
+    allGamesData.forEach(game => {
+        allNodeIdsInGraph.add(game.id);
 
-    let centroids = [];
-    const shuffledPoints = [...dataPoints].sort(() => 0.5 - Math.random());
-    for (let i = 0; i < actualK; i++) {
-        centroids.push([...shuffledPoints[i].point]);
-    }
-
-    const maxIterations = 100;
-    const epsilon = 1e-4;
-
-    let assignments = new Map();
-
-    for (let iter = 0; iter < maxIterations; iter++) {
-        let prevAssignments = new Map(assignments);
-        let clusters = Array.from({ length: actualK }, () => []);
-
-        dataPoints.forEach(dp => {
-            const point = dp.point;
-            let minDistance = Infinity;
-            let newAssignment = -1;
-
-            for (let i = 0; i < actualK; i++) {
-                const centroid = centroids[i];
-                const dist = Math.sqrt(Math.pow(point[0] - centroid[0], 2) + Math.pow(point[1] - centroid[1], 2));
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    newAssignment = i;
-                }
-            }
-            assignments.set(dp.id, newAssignment);
-            if (newAssignment !== -1) {
-                clusters[newAssignment].push(point);
-            }
-        });
-
-        let assignmentsChanged = false;
-        for (const [id, newCluster] of assignments) {
-            if (prevAssignments.get(id) !== newCluster) {
-                assignmentsChanged = true;
-                break;
-            }
-        }
-
-        for (let i = 0; i < actualK; i++) {
-            if (clusters[i].length > 0) {
-                const sumX = clusters[i].reduce((sum, p) => sum + p[0], 0);
-                const sumY = clusters[i].reduce((sum, p) => sum + p[1], 0);
-                centroids[i] = [sumX / clusters[i].length, sumY / clusters[i].length];
-            } else {
-                centroids[i] = [...dataPoints[Math.floor(Math.random() * dataPoints.length)].point];
-            }
-        }
-
-        if (!assignmentsChanged) {
-            break;
-        }
-    }
-
-    const result = [];
-    gamesSubset.forEach(game => {
-        result.push({
-            id: game.id,
-            cluster_id: assignments.get(game.id) !== undefined ? assignments.get(game.id) : -1
-        });
-    });
-    return result;
-};
-
-
-const calculatePageRank = () => {
-    if (allGamesData.length === 0) return;
-
-    const dampingFactor = 0.85;
-    const iterations = 50;
-    const epsilon = 1e-7;
-
-    const gameIdToIndex = new Map(allGamesData.map((game, index) => [game.id, index]));
-    const numGames = allGamesData.length;
-
-    const outLinks = new Array(numGames).fill(0).map(() => []);
-
-    allGamesData.forEach((game, i) => {
         if (game.recommendations && game.recommendations.fans_liked) {
             game.recommendations.fans_liked.forEach(recommendedId => {
-                const j = gameIdToIndex.get(recommendedId);
-                if (j !== undefined) {
-                    outLinks[i].push(j);
+                if (allGamesData.some(g => g.id === recommendedId)) {
+                    pagerank.link(game.id, recommendedId, 1.0);
+                    allNodeIdsInGraph.add(recommendedId);
                 }
             });
         }
     });
 
-    let ranks = new Array(numGames).fill(1 / numGames);
-    let prevRanks = new Array(numGames).fill(0);
+    const totalNodesExpected = allNodeIdsInGraph.size;
 
-    for (let iter = 0; iter < iterations; iter++) {
-        prevRanks = [...ranks];
-        let danglingSum = 0;
-
-        for (let i = 0; i < numGames; i++) {
-            if (outLinks[i].length === 0) {
-                danglingSum += prevRanks[i];
-            }
-        }
-
-        for (let i = 0; i < numGames; i++) {
-            let sumInboundRanks = 0;
-            for (let j = 0; j < numGames; j++) {
-                if (outLinks[j].includes(i)) {
-                    if (outLinks[j].length > 0) {
-                        sumInboundRanks += prevRanks[j] / outLinks[j].length;
-                    }
-                }
-            }
-
-            ranks[i] = (1 - dampingFactor) / numGames +
-                       dampingFactor * (sumInboundRanks + danglingSum / numGames);
-        }
-
-        const diff = ranks.reduce((sum, rank, i) => sum + Math.abs(rank - prevRanks[i]), 0);
-        if (diff < epsilon) {
-            break;
-        }
+    if (totalNodesExpected === 0) {
+        console.warn("No valid nodes found for PageRank calculation. All scores will be 0.");
+        allGamesData.forEach(game => game.pagerank_score = 0);
+        return;
     }
 
-    const rankedGames = allGamesData.map((game, index) => ({
-        id: game.id,
-        score: ranks[index]
-    })).sort((a, b) => b.score - a.score);
+    const dampingFactor = 0.85;
+    const epsilon = 1e-7;
 
-    const top10Ids = new Set(rankedGames.slice(0, 10).map(game => game.id));
+    const pagerankResults = await new Promise((resolve) => {
+        let pagerankResultsAcc = {};
+        let nodesProcessedInCallback = 0;
 
-    allGamesData.forEach((game, index) => {
-        game.pagerank_score = ranks[index] || 0;
-        game.is_top_10_pagerank = top10Ids.has(game.id);
+        if (totalNodesExpected === 0) {
+            resolve({});
+            return;
+        }
+
+        pagerank.rank(dampingFactor, epsilon, (node, rank) => {
+            pagerankResultsAcc[node] = rank;
+            nodesProcessedInCallback++;
+
+            if (nodesProcessedInCallback === totalNodesExpected) {
+                resolve(pagerankResultsAcc);
+            }
+        });
+
+        setTimeout(() => {
+            if (nodesProcessedInCallback < totalNodesExpected) {
+                console.warn(`Pagerank.js did not process all ${totalNodesExpected} nodes within timeout (${nodesProcessedInCallback} processed). Resolving with partial results.`);
+                allNodeIdsInGraph.forEach(id => {
+                    if (pagerankResultsAcc[id] === undefined) {
+                        pagerankResultsAcc[id] = 0;
+                    }
+                });
+                resolve(pagerankResultsAcc);
+            }
+        }, 3000);
+    });
+
+    const pagerankMap = new Map(Object.entries(pagerankResults).map(([id, score]) => [parseInt(id), score]));
+
+    allGamesData.forEach(game => {
+        game.pagerank_score = pagerankMap.get(game.id) || 0;
     });
 };
 
 export const getAllGames = () => {
     return allGamesData;
+};
+
+const euclideanDistance = (point1, point2) => {
+    return Math.sqrt(Math.pow(point1[0] - point2[0], 2) + Math.pow(point1[1] - point2[1], 2));
+};
+
+export const performKMeans = (gamesSubset, kValue) => {
+    if (!gamesSubset || gamesSubset.length === 0) {
+        return { clusters: [], centroids: [] };
+    }
+
+    const dataForKMeans = gamesSubset.map(game => game.lda_projection);
+    const maxIterations = 300;
+    const tolerance = 1e-4;
+
+    const effectiveK = Math.max(1, Math.min(kValue, dataForKMeans.length));
+
+    if (effectiveK <= 1) {
+        const centroid = dataForKMeans.reduce((acc, val) => [acc[0] + val[0], acc[1] + val[1]], [0,0]);
+        centroid[0] /= dataForKMeans.length;
+        centroid[1] /= dataForKMeans.length;
+        const clusters = gamesSubset.map(game => ({ id: game.id, cluster: 0 }));
+        return { clusters, centroids: [centroid] };
+    }
+
+    let centroids = [];
+    const dataIndices = Array.from({ length: dataForKMeans.length }, (_, i) => i);
+    for (let i = dataIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [dataIndices[i], dataIndices[j]] = [dataIndices[j], dataIndices[i]];
+    }
+    for (let i = 0; i < effectiveK; i++) {
+        centroids.push([...dataForKMeans[dataIndices[i]]]);
+    }
+
+    let assignments = new Array(dataForKMeans.length).fill(-1);
+    let iteration = 0;
+    let centroidsChanged = true;
+
+    while (iteration < maxIterations && centroidsChanged) {
+        centroidsChanged = false;
+
+        const newAssignments = new Array(dataForKMeans.length);
+        for (let i = 0; i < dataForKMeans.length; i++) {
+            const point = dataForKMeans[i];
+            let minDistance = Infinity;
+            let closestCentroidIndex = -1;
+
+            for (let j = 0; j < effectiveK; j++) {
+                const distance = euclideanDistance(point, centroids[j]);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestCentroidIndex = j;
+                }
+            }
+            newAssignments[i] = closestCentroidIndex;
+
+            if (newAssignments[i] !== assignments[i]) {
+                centroidsChanged = true;
+            }
+        }
+        assignments = newAssignments;
+
+        const newCentroids = Array(effectiveK).fill(null).map(() => [0, 0]);
+        const clusterCounts = Array(effectiveK).fill(0);
+
+        for (let i = 0; i < dataForKMeans.length; i++) {
+            const clusterIndex = assignments[i];
+            newCentroids[clusterIndex][0] += dataForKMeans[i][0];
+            newCentroids[clusterIndex][1] += dataForKMeans[i][1];
+            clusterCounts[clusterIndex]++;
+        }
+
+        let totalCentroidShift = 0;
+        for (let j = 0; j < effectiveK; j++) {
+            if (clusterCounts[j] > 0) {
+                newCentroids[j][0] /= clusterCounts[j];
+                newCentroids[j][1] /= clusterCounts[j];
+            } else {
+                newCentroids[j] = [...centroids[j]];
+            }
+            totalCentroidShift += euclideanDistance(centroids[j], newCentroids[j]);
+        }
+
+        if (totalCentroidShift < tolerance) {
+            centroidsChanged = false;
+        }
+
+        centroids = newCentroids;
+        iteration++;
+    }
+
+    const clusterAssignments = gamesSubset.map((game, index) => ({
+        id: game.id,
+        cluster: assignments[index]
+    }));
+
+    return { clusters: clusterAssignments, centroids: centroids };
 };
 
 loadGamesData();

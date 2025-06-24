@@ -1,27 +1,32 @@
-import { print_clientConnected, print_clientDisconnected } from "./static/utils.js"
-import { getAllGames, performKMeans } from './preprocessing.js';
+import { configs } from './static/configs.js';
+import * as preprocessing from '../_server/preprocessing.js';
 
-export function setupConnection(socket) {
-  print_clientConnected(socket.id);
+let allGames = [];
 
-  // Emit the initial board games data
-  socket.emit('initial_game_data', getAllGames());
+export const initWebSocket = async (io) => {
+    try {
+        await preprocessing.loadGamesData();
+        allGames = preprocessing.getAllGames();
+        console.log('WebSocket module: Server is ready with preprocessed data.');
 
-  // Handle K-Means clustering request
-  socket.on('request_kmeans_clustering', ({ gameIdsToCluster, kValue }) => {
-    console.log(`K-Means request for ${gameIdsToCluster.length} games with K=${kValue}.`);
+        io.on("connection", (socket) => {
+            console.log("Client connected: " + socket.id);
 
-    // Retrieve the actual game objects based on IDs
-    const gamesToCluster = getAllGames().filter(game => gameIdsToCluster.includes(game.id));
+            socket.emit('initial_game_data', allGames);
 
-    // Perform K-Means on the subset
-    const clusterAssignments = performKMeans(gamesToCluster, kValue);
+            socket.on('request_kmeans_clustering', (data) => {
+                const { gameIdsToCluster, kValue } = data;
+                const gamesSubset = allGames.filter(game => gameIdsToCluster.includes(game.id));
+                const kmeansResults = preprocessing.performKMeans(gamesSubset, kValue);
+                socket.emit('kmeans_results', kmeansResults);
+            });
 
-    // Send back the cluster assignments for the filtered games
-    socket.emit('kmeans_results', clusterAssignments);
-  });
+            socket.on("disconnect", () => {
+                console.log("Client disconnected: " + socket.id);
+            });
+        });
 
-  socket.on("disconnect", () => {
-    print_clientDisconnected(socket.id);
-  });
-}
+    } catch (error) {
+        console.error("WebSocket module: Failed to load initial game data and set up listeners:", error);
+    }
+};
