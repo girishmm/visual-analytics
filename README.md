@@ -1,12 +1,12 @@
 ## Project: Visual Analytics
 
 - [x] Step 1: Setup
-- [ ] Step x: Download the dataset and clean (Shaswata)
+- [x] Step x: Download the dataset and clean (Shaswata)
 - [x] Step 2. Update UI to focus on scatter
 - [x] Step 3: Add LDA and k-means
 - [x] Step 4: Add page rank
 - [x] Step 5: Add interactiveness
-- [ ] Step 6: Check with cleaned data
+- [x] Step 6: Check with cleaned data
 
 ### Set-up
 
