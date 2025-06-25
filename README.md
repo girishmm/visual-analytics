@@ -12,11 +12,11 @@
 
 Follow the notes provided by course organizers in [templete.pdf](template.pdf) for setup of environment.
 
-![Server up and running!](img/setup-complete.png)
+![Up and running!](img/complete.png)
 
 ### Idea
 
 Clean UI where LDA, k-means and page rank are focused on the
 scatterplot to keep it simple and nice :)
 
-**Here is the presentation**: [presentation](presentation-project-1.pdf))
+**Here is the presentation**: [presentation](presentation-project-2.pdf))
